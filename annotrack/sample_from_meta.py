@@ -1,7 +1,7 @@
 import os
 import pandas as pd 
 import numpy as np
-from sampling import sample_tracks, sample_track_terminations, sample_objects, get_sample_hypervolumes, save_sample
+from .sampling import sample_tracks, sample_track_terminations, sample_objects, get_sample_hypervolumes, save_sample
 from pathlib import Path
 from nd2_dask.nd2_reader import nd2_reader
 import zarr
