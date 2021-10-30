@@ -44,7 +44,7 @@ jobs:
           pip install --upgrade pip
           pip install setuptools
           pip install .
-          python -c "import trackproof"
+          python -c "import annotrack"
       
       - name: Pytest
         run: |
