@@ -34,5 +34,6 @@ setuptools.setup(
         'nd2_dask', 
         'zarpaint',
         'pytest', 
-        'sphinx']
+        'sphinx', 
+        'pandas']
 )
