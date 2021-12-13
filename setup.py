@@ -35,5 +35,6 @@ setuptools.setup(
         'zarpaint',
         'pytest', 
         'sphinx', 
-        'pandas']
+        'pandas', 
+        'ptitprince']
 )
