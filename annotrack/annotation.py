@@ -55,7 +55,7 @@ class SampleViewer:
                  id_swap_col='id-swaps', 
                  false_term_col='false-terminations',
                  false_start_col='false-starts',
-                 t_start='t_start', 
+                 t_start='frame_start', 
                  scale=(2, .5, .5)):
         '''
         View and annotate a sample
@@ -144,11 +144,12 @@ class SampleViewer:
         # this lil' guys not hurting anything... or helping... so sue me
         self.mode = mode
 
-        # get the info data frame with correct indexes
-        self.info = self._get_full_info()
-
         # will save dataframe here if specified
         self.save_path = save_path
+
+        # get the info data frame with correct indexes
+        info = self._get_full_info()
+        self.info = info
 
 
     def _add_annotation_cols(self):
@@ -169,7 +170,20 @@ class SampleViewer:
             row = info[info['key'] == keys[1]]
             full_info.append(row)
         full_info = pd.concat(full_info)
+        if 'Unnamed: 0' in full_info.columns.values:
+            full_info = full_info.drop(columns=['Unnamed: 0', ])
+        if 'level_0' in full_info.columns.values:
+            full_info = full_info.drop(columns=['level_0', ])
         full_info = full_info.reset_index(drop=True)
+        full_info.to_csv(self.save_path)
+        full_info = pd.read_csv(self.save_path)
+        if 'Unnamed: 0' in full_info.columns.values:
+            full_info = full_info.drop(columns=['Unnamed: 0', ])
+            full_info['key'] =  full_info['key'].apply(eval)
+            full_info[self.id_swap_col] =  full_info[self.id_swap_col].apply(eval)
+            full_info[self.false_start_col] =  full_info[self.false_start_col].apply(eval)
+            full_info[self.false_term_col] =  full_info[self.false_term_col].apply(eval)
+            full_info[self.seg_err_col] =  full_info[self.seg_err_col].apply(eval)
         return full_info
 
     
@@ -313,11 +327,14 @@ class SampleViewer:
         Get the time frame at which ID swap happended
         """
         t = self._get_current()
-        self.info[self.id_swap_col][self._i].append(t)
+        keys = self.samples_list[self._i]
+        row = self.info[(self.info['condition_key'] == keys[0]) & (self.info['key'] == keys[1])]
+        idx = row.index.values[0]
+        row.loc[idx, self.id_swap_col] = row.loc[idx, self.id_swap_col].append(t)
         print(f'ID swap recorded at time {t}')
         self.save_info()
         # save to original
-        self._add_data_to_orig_info(t, self.id_swap_col, [])
+        #self._add_data_to_orig_info(t, self.id_swap_col, [])
 
     
     def false_termination(self, viewer):
@@ -325,11 +342,13 @@ class SampleViewer:
         Get the time frame at which false termination occured
         """
         t = self._get_current()
-        self.info[self.false_term_col][self._i].append(t)
+        keys = self.samples_list[self._i]
+        idx = self.info[(self.info['condition_key'] == keys[0]) & (self.info['key'] == keys[1])].index.values[0]
+        self.info.loc[idx, self.false_term_col].append(t)
         print(f'False termination recorded at time {t}')
         self.save_info()
         # save to original
-        self._add_data_to_orig_info(t, self.false_term_col, [])
+        #self._add_data_to_orig_info(t, self.false_term_col, [])
 
 
     def false_start(self, viewer):
@@ -337,11 +356,13 @@ class SampleViewer:
         Get the time frame at which false termination occured
         """
         t = self._get_current()
-        self.info[self.false_start_col][self._i].append(t)
+        keys = self.samples_list[self._i]
+        idx = self.info[(self.info['condition_key'] == keys[0]) & (self.info['key'] == keys[1])].index.values[0]
+        self.info.loc[idx, self.false_start_col].append(t)
         print(f'False start recorded at time {t}')
         self.save_info()
         # save to original
-        self._add_data_to_orig_info(t, self.false_start_col, [])
+        #self._add_data_to_orig_info(t, self.false_start_col, [])
 
 
     def segmentation_error(self, viewer):
@@ -349,11 +370,13 @@ class SampleViewer:
         Get the time frame at which there was a segmentation error
         '''
         t = self._get_current()
-        self.info[self.seg_err_col][self._i].append(t)
+        keys = self.samples_list[self._i]
+        idx = self.info[(self.info['condition_key'] == keys[0]) & (self.info['key'] == keys[1])].index.values[0]
+        self.info.loc[idx, self.seg_err_col].append(t)
         print(f'Segmentation-based error recorded at time {t}')
         self.save_info()
         # save to original
-        self._add_data_to_orig_info(t, self.seg_err_col, [])
+        #self._add_data_to_orig_info(t, self.seg_err_col, [])
 
 
     # Key binding helpers
@@ -394,9 +417,9 @@ class SampleViewer:
         self._get_score()
         self.save_info()
         # save to original info dataframe for the sample (image sample .smpl)
-        self._add_data_to_orig_info(ann, 'correct')
+        #self._add_data_to_orig_info(ann, 'correct')
         # record that this track has been annotated 
-        self._add_data_to_orig_info(True, 'annotated')
+        #self._add_data_to_orig_info(True, 'annotated')
         # (it won't be obtained when prepping data with sample_management.py unless otherwise specifed)
         self._next()
 
@@ -404,6 +427,7 @@ class SampleViewer:
     def _add_data_to_orig_info(self, data, col, empty=None):
         keys = self.samples_list[self.i]
         info_path = self.sample[keys[0]][keys[1]]['info_path']
+        print(info_path)
         info = pd.read_csv(info_path)
         cols = info.columns.values
         if col not in cols:
@@ -411,21 +435,23 @@ class SampleViewer:
             pls_eval = False
         else:
             pls_eval = True
+        #print(cols)
+        #info['key'] = info['key'].apply(eval)
+        #row = info[(info['condition_key'] == keys[0]) & (info['key'] == keys[1])]
         row = info[(info[self.id_col[keys[0]]] == keys[1][0]) & (info[self.time_col[keys[0]]] == keys[1][1])]
         assert len(row) == 1
         idx = row.index[0]
         if empty is None:
-            info.at[idx, col] = data
+            info.loc[idx, col] = data
         elif isinstance(empty, list):
             if pls_eval:
-                l = info.loc[idx, col]
+                l = row[col].values[0]
                 #print('l', l, type(l))
                 l = eval(l)
             else:
                 l = []
             l.append(data)
-            #print(data)
-            info.at[idx, col] = l
+            info.loc[idx, col] = l
             #print(l)
             #print(info.loc[idx, col])
             #print(info.loc[0, col])

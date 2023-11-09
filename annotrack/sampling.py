@@ -443,7 +443,8 @@ def _tracks_df(df, sample, id_col, time_col, array_order):
         info.append(row)
     info = pd.concat(info)
     info = info.reset_index(drop=True)
-    info = info.drop(columns=['Unnamed: 0'])
+    if 'Unnamed: 0' in info.columns.values:
+        info = info.drop(columns=['Unnamed: 0'])
     info['annotated'] = [False, ] * len(info)
     return info 
 
@@ -485,7 +486,12 @@ def sample_tracks(tracks_path: str,
                   max_lost_prop: Union[float, None] =None,
                   min_track_length: Union[int, None] =30,
                   **kwargs):
-    df = pd.read_csv(tracks_path)
+    if tracks_path.endswith('.csv'):
+        df = pd.read_csv(tracks_path)
+    elif tracks_path.endswith('.parquet'):
+        df = pd.read_parquet(tracks_path)
+    else:
+        raise ValueError('please ensure the tracks file is a csv or parquet')
     print(tracks_path)
     print(image_path)
     print(labels_path)
@@ -506,7 +512,7 @@ def sample_tracks(tracks_path: str,
                     m = 'Please use a column in the data frame or 2-norm to add distances'
                     raise(KeyError(m))
     # filter for min track length
-    df = add_track_length(df, id_col, new_col='track_length') 
+    df['track_length'] = df['nrtracks']
     print(min_track_length)
     print(len(df))
     if min_track_length is not None:
@@ -933,8 +939,9 @@ def open_with_correct_modality(image_path, channel=None, chan_axis=0):
             print(image_path)
             raise ValueError('Read in as zarr group... need array like?!')
         if channel is not None:
-            s_ = [slice(None, None), ] * len(image.ndim)
+            s_ = [slice(None, None), ] * image.ndim
             s_[chan_axis] = slice(channel, channel + 1)
+            s_ = tuple(s_)
             image = image[s_]
             image = da.array(image)
         print(image)
@@ -948,6 +955,7 @@ def open_with_correct_modality(image_path, channel=None, chan_axis=0):
         else:
             print('channel == ', channel)
             image = read_from_h5(image_path, channel='channel2')
+    image = np.squeeze(image)
     return image
 
 

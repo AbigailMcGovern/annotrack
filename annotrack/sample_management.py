@@ -2,7 +2,7 @@ import numpy as np
 from numpy.core.fromnumeric import size
 from numpy.random import sample
 import pandas as pd
-from .sampling import read_sample
+from annotrack.sampling import read_sample
 
 
 def prepare_sample_for_annotation(samples, n_each=30, use_annotated=False):
