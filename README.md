@@ -1,9 +1,37 @@
 # annotrack
-Annotate image tracking results from a variety of different conditions
+Annotrack is a napari plugin for annotating errors in object trajectories. The plugin will help you take a sample of track segments along with a small section of corresponding image and segmentation. Annotrack allows you to annotate three types of errors: (1) ID swap errors (track jumps between objects), (2) false starts (track starts on a pre-existing object) and false terminations (track ends but object still exists). By looking at the combined rates of false starts and false terminations you can assess track discontinutation errors. 
+
+**Please note:** Images and segmentations must be in zarr format. Tracks should be in parquet format.  
 
 ## Installation 
 
-Install the package into your chosen python environment
+There are three main ways to install annotrack:
+
+### Install Using pip
+*Please note that this is planned/under development*
+
+Type the following into your terminal (MacOS or Ubuntu) or annaconda prompt (windows):
+
+```bash
+pip install annotrack
+```
+
+### Install
+*Please note that this is planned/under development*
+
+Type the following into your terminal (MacOS or Ubuntu) or annaconda prompt (windows):
+
+```bash
+install napari
+napari
+```
+
+Once napari has opened (this may take a second the first time you open it), go to the pannel at the top of the screen and select the 'plugins' dropdown. Then select install/uninstall plugins. A new window will open showing available plugins. Either scroll down to or search 'annotrack' and click 'install'. 
+
+### Install from Source Code
+*please use this for now*
+
+Type the following into your terminal (MacOS or Ubuntu) or annaconda prompt (windows):
 
 ```bash
 git clone <repository https or ssh>
@@ -11,87 +39,46 @@ cd annotrack
 pip install .
 ```
 
-## Sampling
+## Opening Annotrack
+Once annotrack is properly installed you will be able to open annotrack by opening napari. You can open napari through the command line (terminal (MacOS or Ubuntu) or annaconda prompt (windows)) as follows:
 
-To randomly sample track segments from a single tracks file corresponding to an image. To be honest, I don't use this directly but in `sample_from_meta.py` which obtains samples based on the metadata saved with the platelets data (super specific use case). 
-
-```Python
-from annotrack import sample_tracks, get_sample_hypervolumes, save_sample
-import pandas as pd
-from pathlib import Path
-
-# SET UP
-tracks_path = 'path/to/tracks.csv'
-image_path = 'path/to/image/time/series"
-labels_path = 'path/to/labels/time/series" # optionally None (default)
-tracks = pd.read_csv(tracks_path)
-name = Path(tracks_path).stem
-shape = (194, 33, 512, 512) # hardcoded because image files are 5D and can potentially have c @ 0 or @ 1 (I only use 1 channel)
-array_order = ('t', 'z_pixels', 'y_pixels', 'x_pixels') # names of coord columns (in pixels) in tracks df in order of image dims
-id_col = 'particle' # name of col with IDs
-time_col = 't' # name of col with time (in frames)
-frames = 30 # how many frames to show around the track segment
-box = 60 # how big should the img box be in pixels in the dim/s with smallest pixel size (here x & y)
-# box and frames are subject to rounding error by 1... still haven't bothered to fix this
-scale = (1, 2, 0.5, 0.5) # scale of dims
-min_track_length = 50 # this is the bit that is currently broken
-n_samples = 30
-
-# SAMPLE
-sample = sample_tracks(
-    tracks,
-    image_path, 
-    shape,
-    name,
-    n_samples,
-    labels_path=labels_path,
-    frames=frames, 
-    box=box,
-    id_col=id_col, 
-    time_col=time_col, 
-    array_order=array_order, 
-    scale=scale, 
-    min_track_length=min_track_length,
-    
-# ADD IMAGE AND LABELS DATA
-img_channel = 2 # which channel... if nd2 uses nd2 metadata to get channel axis
-sample = get_sample_hypervolumes(sample, img_channel)
-
-# SAVE SAMPLE
-save_dir = 'directory/into/which/to/save/sample'
-save_sample(save_dir, sample) # uses sample info and name provided above to name the sample
+```bash
+napari
 ```
 
-## Annotation
+You can find the annotrack widgets by selecting the dropdown 'plugins' at the pannel at the top of the screen and hovering over 'annotrack'.  
 
-In the case that we are annotating multiple conditions to compare, we want to show them in the one session in randomised order with the annotator blinded to where the sample has originated from. We want to be able to annotated unannotated data from the sample without having the burden of having to do this all at once. The annotations are therefore saved into the saved sample. A selected number of samples saved from the various tracking experiments can be annotated using the following code. If you re-execute this code, you will only be shown not yet annotated data, unless you request otherwise. 
+## Sample from CSV
 
-```Python
-from annotrack import SampleViewer, prepare_sample_for_annotation
+To sample your tracks you will need to supply the file paths for the images, segmentations, and tracks. 
 
-# where are the sample files belonging to different conditions that you want to compare
-samples_to_view = {
-    'condition_0' : ['path/to/condition/0/sample.smpl', ...], # however many
-    'condition_1' : ['path/to/condition/1/sample.smpl', ...]
-n_each = 30 # how many to look at from each condition
-new_samples = prepare_sample_for_annotation(samples_to_view, n_each)
+ ![csv_structure widget](https://github.com/AbigailMcGovern/annotrack/blob/main/media/csv_structure.png)
 
-# annotate the samples
-save_path = 'path/to/save/data/about/new_samples' # optional (default None) as the data is saved into the samples anyway
-sample_viewer = SampleViewer(new_samples, save_path) # I would have de-objectified this... but I couldn't be arsed *sigh*
-sample_viewer.annotate()
-```
+ ![sample_from_csv widget](https://github.com/AbigailMcGovern/annotrack/blob/main/media/sample_from_csv.png)
 
-P.S., this hasn't been extensively tested... the main parts work in the conditions they've been tested in, but this probably only means I haven't yet seen where it breaks. 
+### Annotate Now?
+
+In the case that we are annotating multiple conditions to compare, we want to show them in the one session in randomised order with the annotator blinded to where the sample has originated from. We want to be able to annotated unannotated data from the sample without having the burden of having to do this all at once. The annotations are therefore saved into the saved sample. A selected number of samples saved from the various tracking experiments can be annotated using the following code. If you re-execute this code, you will only be shown not yet annotated data, unless you request otherwise.
 
 Keys to navagate and annotate samples
 - '2' - move to next sample
 - '1' - move to previous sample
-- 'y' - annotate as correct
-- 'n' - annotate as containing an error
+- 'y' - annotate as correct (will move to the next sample automatically)
+- 'n' - annotate as containing an error (will move to the next sample automatically)
 - 'i' - annotate the frame following a ID swap error
 - 't' - annotate the fame following an incorrect termination
 - 'Shift-t' - annotate the frame containing a false start error
 - 's' - annotate an error ('i', 't', or 'Shift-t') as being associated with a segmentation error (merge or split of objects)
 
 When an error is associated the specific frame ('i', 't', 'Shift-t', or 's'), the frame number (within the original image) will be added to a list of errors for the sample within the sample's (.smpl) info data frame. E.g., you may have a list of ID swaps for your sampled track segment (`[108, 111, 112]`) and a corresponding list of segmentation error associations (`[108, 112]`). 
+
+## Annotate Existing Sample
+If you have already saved a sample and want to annotate it, you can load the sample data using the `annotate_existing_sample` widget. This might be useful if you want to have several annotators annotate the same sample. To access this widget, open napari
+
+ ![annotate_existing_sample widget](https://github.com/AbigailMcGovern/annotrack/blob/main/media/annotate_existing_sample.png)
+
+## Contributing and User Support
+
+**User support:** If you have an issue with annotrack please add an issue (go to the Issues tab at the top of the GitHub page). If your issue is a bug, please include as much information as possible to help debug the problem. Examples of information include: details about the image and segmentation data (dimensions), number of images, number of samples you are trying to take. If you are requesting an improvement, try to be as clear as possible about what you need. 
+
+**Contributing:** If you want to contribute to annotrack, please fork the repo and if you want to make changes make a pull request with as much detail about the change as possible. Please ensure any changes you want to make don't break the existing functions.
