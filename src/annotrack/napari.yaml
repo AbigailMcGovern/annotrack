@@ -1,0 +1,15 @@
+name: annotrack
+schema_version: 0.1.0
+contributions:
+  commands:
+  - id: annotrack.sample_from_csv
+    title: Create sample_from_csv
+    python_name: annotrack._dock_widgets:sample_from_csv
+  - id: annotrack.annotate_existing_samples
+    title: Create annotate_existing_samples
+    python_name: annotrack._dock_widgets:annotate_existing_samples
+  widgets:
+  - command: annotrack.sample_from_csv
+    display_name: sample_from_csv
+  - command: annotrack.annotate_existing_samples
+    display_name: annotate_existing_samples
