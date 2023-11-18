@@ -56,7 +56,9 @@ class SampleViewer:
                  false_term_col='false-terminations',
                  false_start_col='false-starts',
                  t_start='frame_start', 
-                 scale=(2, .5, .5)):
+                 scale=(2, .5, .5), 
+                 viewer=None,
+                 ):
         '''
         View and annotate a sample
 
@@ -139,7 +141,30 @@ class SampleViewer:
         self._add_annotation_cols()
         
         # initialise viewer attr
-        self.v = None
+        self.v = viewer
+        self.v_source = 'self'
+        if viewer is not None:
+            m = 'Mark samples as correct or incorrect by pressing y or n, \n'
+            m = m + 'repspectively. \n'
+            m = m + '---------------------------------------------------------\n'
+            m = m + 'To indicate that an ID swap has has occured, at a given \n'
+            m = m + 'point in time press i.\n'
+            m = m + '---------------------------------------------------------\n'
+            m = m + 'To indicate that a false termination or start has occured\n'
+            m = m + 'at a given point in time, use t or Shift-t, respectively.\n'
+            m = m + '---------------------------------------------------------\n'
+            m = m + 'To indicate that a tracking error at a given time point\n'
+            m = m + 'is associated with a segmentation error, press s.\n'
+            m = m + '---------------------------------------------------------\n'
+            m = m + 'Pressing i, t or Shift-t will record the frame number at\n'
+            m = m + 'which the error occured. This will be saved into the \n'
+            m = m + 'info csv in the sample.smpl directory\n'
+            m = m + '---------------------------------------------------------\n'
+            m = m + 'To navagate to the next sample, use 2. To move to the \n'
+            m = m + 'previous sample, use 1. (a keyboard agnostic approach)\n'
+            m = m + '---------------------------------------------------------\n'
+            print(m)
+            self.v_source = 'preexising'
 
         # this lil' guys not hurting anything... or helping... so sue me
         self.mode = mode
@@ -217,7 +242,8 @@ class SampleViewer:
         self.v.bind_key('t', self.false_termination)
         self.v.bind_key('Shift-t', self.false_start)
         self.v.bind_key('s', self.segmentation_error)
-        napari.run()
+        if self.v_source == 'self':
+            napari.run()
 
 
     def _show_sample(self):
@@ -470,9 +496,10 @@ class SampleViewer:
     def _check_ann_status(self):
         out = self.info['correct'].values
         if None not in out:
-            print('---------------------------------------------------------')
-            print('All tracks have been annotated')
-            print(f'Final score is {self.score * 100} %')
+        #    print('---------------------------------------------------------')
+        #    print('All tracks have been annotated')
+        #    print(f'Final score is {self.score * 100} %')
+            pass
         elif None in out and self._i + 1 > len(out):
             not_done = []
             for i, o in enumerate(out):

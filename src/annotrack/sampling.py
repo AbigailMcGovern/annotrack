@@ -486,15 +486,16 @@ def sample_tracks(tracks_path: str,
                   max_lost_prop: Union[float, None] =None,
                   min_track_length: Union[int, None] =30,
                   **kwargs):
+    
     if tracks_path.endswith('.csv'):
         df = pd.read_csv(tracks_path)
     elif tracks_path.endswith('.parquet'):
         df = pd.read_parquet(tracks_path)
     else:
         raise ValueError('please ensure the tracks file is a csv or parquet')
-    print(tracks_path)
-    print(image_path)
-    print(labels_path)
+    #print(tracks_path)
+    #print(image_path)
+    #print(labels_path)
     # calculate weights if required
     coords_cols = _coords_cols(array_order, non_tzyx_col, time_col)
     # well this was lazy (see below)
@@ -1118,6 +1119,7 @@ def save_sample(save_dir, sample):
             lab_zarr[:, :, :, :] = lab
         except KeyError:
             pass
+    return sample_dir
 
     
 
