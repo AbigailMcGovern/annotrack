@@ -50,11 +50,51 @@ You can find the annotrack widgets by selecting the dropdown 'plugins' at the pa
 
 ## Sample from CSV
 
-To sample your tracks you will need to supply the file paths for the images, segmentations, and tracks. 
+To sample your tracks you will need to supply the file paths for the images, segmentations, and tracks. You supply this in a csv that is structured as shown below:
 
  ![csv_structure widget](https://github.com/AbigailMcGovern/annotrack/blob/main/media/csv_structure.png)
 
+In this csv, you may also specify how many samples are to be taken from each file. If this is not provided, annotrack will use the value you supply to the `sample_from_csv` widget. The csv must contain a column that specifies a category to which each sample belongs (e.g., species, experimental condition, drug, etc.).  If this isnt important for your samples, just add a dummy category (e.g., sample_type : [A, A, A, A]). 
+
+To access the widget and sample track segments, go to the top of the screen, go to **plugins > annotrack > sample_from_csv**. When the widget is displayed, select the csv file, select a directory into which to save results, and proivide a name for the summary data file (i.e., where your annotations will be written). 
+
  ![sample_from_csv widget](https://github.com/AbigailMcGovern/annotrack/blob/main/media/sample_from_csv.png)
+
+### Widget parameters
+- **path to csv**: 
+        The path storing the info from which to generate the samples. 
+        The CSV should have the columns: image_path, labels_path, tracks_path, <category_col>, 
+        You can also add an optional n_samples column if you would like to 
+        specify how many samples to take from each individual file. Otherwise, 
+        the default "n_samples" you've supplied will be used.
+- **output dir**: 
+        Where will the output be saved?
+- **output name**: 
+        What will output summary files/directories be called?
+- **n samples**: 
+        How many samples to be obtained from each file. Will be overwritten
+        if there is a valid integer number in the n_samples colum of the csv.
+- **tzyx cols**: 
+        What are the names of the columns denoting time (in frames) and coordinate
+        positions (in pixels) in the file containing tracks? The order should be:
+        t, z, y, x. 
+- **id col**: 
+        What is the name of the column denoting the specific ID for each tracked
+        object?
+- **scale**: 
+        size of pixels (e.g., in um) for the z, y, and x coordinates (in that
+        order)
+- **frames**: 
+        Approximate maximum number of frames of track segment. 
+        Max frames = frames (if even) or frames - 1 (if odd)
+- **box size**: 
+        Approximate size of bounding box (in pixels). 
+- **min track len**: 
+        You can set a minimum track len to include in the search. 
+        This can help to eliminate less useful data. This should be at least 1 to only include tracked objects. Set higher only if you are specifically interested in longer lived tracks. 
+- **image channel**: 
+        This denotes the index of the channel from which to get 
+        image data (0: channel 1, 1: channel 2, 2: channel 3, 3: channel 4)
 
 ### Annotate Now?
 
