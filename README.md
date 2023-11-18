@@ -34,7 +34,7 @@ Once napari has opened (this may take a second the first time you open it), go t
 Type the following into your terminal (MacOS or Ubuntu) or annaconda prompt (windows):
 
 ```bash
-git clone <repository https or ssh>
+git clone https://github.com/AbigailMcGovern/annotrack.git
 cd annotrack
 pip install .
 ```
