@@ -145,8 +145,10 @@ class SampleViewer:
         self.v_source = 'self'
         if viewer is not None:
             message = (
-            """Mark samples as correct or incorrect by pressing y or n,
-            respectively.
+            """
+            Mark samples as correct or incorrect by pressing y or n,
+            respectively. *This will advance to the next sample.* Read below
+            for how to mark specific error types.
             
             To indicate that an ID swap has occurred, navigate to the first
             frame of the new track and press i.
@@ -164,7 +166,7 @@ class SampleViewer:
             previous sample.
             """
             )
-            print(m)
+            print(message)
             self.v_source = 'preexising'
 
         # this lil' guys not hurting anything... or helping... so sue me
@@ -251,29 +253,31 @@ class SampleViewer:
         # initialise the viewer if it doesnt exist
         if self.v is None:
             self.v = napari.Viewer()
-            print('---------------------------------------------------------')
             print(f"Showing sample 1/{len(self.samples_list)}")
             print('---------------------------------------------------------')
-            m = 'Mark samples as correct or incorrect by pressing y or n, \n'
-            m = m + 'repspectively. \n'
-            m = m + '---------------------------------------------------------\n'
-            m = m + 'To indicate that an ID swap has has occured, at a given \n'
-            m = m + 'point in time press i.\n'
-            m = m + '---------------------------------------------------------\n'
-            m = m + 'To indicate that a false termination or start has occured\n'
-            m = m + 'at a given point in time, use t or Shift-t, respectively.\n'
-            m = m + '---------------------------------------------------------\n'
-            m = m + 'To indicate that a tracking error at a given time point\n'
-            m = m + 'is associated with a segmentation error, press s.\n'
-            m = m + '---------------------------------------------------------\n'
-            m = m + 'Pressing i, t or Shift-t will record the frame number at\n'
-            m = m + 'which the error occured. This will be saved into the \n'
-            m = m + 'info csv in the sample.smpl directory\n'
-            m = m + '---------------------------------------------------------\n'
-            m = m + 'To navagate to the next sample, use 2. To move to the \n'
-            m = m + 'previous sample, use 1. (a keyboard agnostic approach)\n'
-            m = m + '---------------------------------------------------------\n'
-            print(m)
+            message = (
+                """
+                Mark samples as correct or incorrect by pressing y or n,
+                respectively. *This will advance to the next sample.* Read
+                below for how to mark specific error types.
+    
+                To indicate that an ID swap has occurred, navigate to the first
+                frame of the new track and press i.
+    
+                To indicate that a false termination or start has occurred,
+                navigate to the frame where it occurs and press t or Shift-t.
+    
+                To indicate that a tracking error (any of the above) is caused
+                by a segmentation error, press s.
+    
+                These error types will be saved to the info.csv file in the
+                sample.smpl directory.
+    
+                To navigate to the next sample, use 2, and use 1 to navigate to
+                the previous sample.
+                """
+            )
+            print(message)
         # get the names of layers currently attached to the viewer
         layer_names = [l.name for l in self.v.layers]
         prop = {}
@@ -420,7 +424,7 @@ class SampleViewer:
             print('---------------------------------------------------------')
             print(f"Showing sample {self._i + 1}/{len(self.samples_list)}")
             self._check_ann_status()
-            print("To navagate to prior samples press the 1 key")
+            print("To navigate to prior samples press the 1 key")
 
     
     def _previous(self):
@@ -433,7 +437,7 @@ class SampleViewer:
             print('---------------------------------------------------------')
             print(f"Showing sample {self._i + 1}/{len(self.samples_list)}")
             self._check_ann_status()
-            print("To navagate to the next sample press the 2 key")
+            print("To navigate to the next sample press the 2 key")
 
 
     def _annotate(self, ann):
