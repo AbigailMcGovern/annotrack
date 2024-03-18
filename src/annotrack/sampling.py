@@ -926,18 +926,18 @@ def _guess_channel_axis(shp):
 
 
 def open_with_correct_modality(image_path, channel=None, chan_axis=None):
-    if chan_axis is None:
-        chan_axis = _guess_channel_axis(image.shape)
     suffix = Path(image_path).suffix
     if suffix == '.zarr':
         image = zarr.open(image_path, 'r')
         if isinstance(image, zarr.hierarchy.Group):  # assume ome-zarr
-            image = zarr['/0']
+            image = image['/0']
             if not isinstance(image, zarr.core.Array):
                 raise ValueError(
                         'Not a zarr array or ome zarr array: {image_path}'
                         )
 
+        if chan_axis is None:
+            chan_axis = _guess_channel_axis(image.shape)
         if channel is not None and chan_axis is not None:
             # extract only the desired channel
             image = da.array(image)
@@ -1007,7 +1007,7 @@ def get_sample_hypervolumes(sample, img_channel=None):
             slice_.append(s_)
         img = np.asarray(image[tuple(slice_)])
         if labels is not None:
-            lab = np.asarray(tuple(slice_))
+            lab = np.asarray(labels[tuple(slice_)])
         else:
             lab = None
         sample[pair]['image'] = img
