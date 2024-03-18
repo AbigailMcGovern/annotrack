@@ -4,7 +4,7 @@ from pathlib import Path
 import napari
 import zarr
 from magicgui import magic_factory
-from .sampling import sample_tracks, sample_tracks, get_sample_hypervolumes, save_sample
+from .sampling import sample_tracks, get_sample_hypervolumes, save_sample
 from .annotation import SampleViewer
 from .sample_management import prepare_sample_for_annotation
 from typing import Tuple, Union
