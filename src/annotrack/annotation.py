@@ -73,7 +73,7 @@ class SampleViewer:
                         'array_order' : (<col name corresponding to coords>, ...)
                         'time_col' : str, 
                         'id_col' : str
-                }
+                        }
                     (ID, t) : {
                         'df' : pd.DataFrame,
                         'df_path' : 'path/to/info/df.csv', 
