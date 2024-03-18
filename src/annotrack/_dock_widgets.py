@@ -114,6 +114,8 @@ def _sample_from_csv(
         annotate_now: bool = True
     ):
 
+    path_to_csv = Path(path_to_csv)
+    output_dir = Path(output_dir)
     t_col = tzyx_cols[0]
     scale = (1, ) + scale
     instructions = pd.read_csv(path_to_csv)
@@ -153,7 +155,7 @@ def _sample_from_csv(
             row = instructions.loc[idx, :].copy()
             row['sample_path'] = sample_dir
             instructions = pd.concat([instructions, row]).reset_index()
-    instructions.to_csv(path_to_csv)  
+    instructions.to_csv(Path(sample_dir) / 'instructions.csv')
     
     # View
     # ----
