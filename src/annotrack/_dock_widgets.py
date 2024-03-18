@@ -4,22 +4,22 @@ from pathlib import Path
 import napari
 import zarr
 from magicgui import magic_factory
-from .sampling import sample_tracks, sample_tracks, get_sample_hypervolumes, save_sample
+from .sampling import sample_tracks, get_sample_hypervolumes, save_sample
 from .annotation import SampleViewer
 from .sample_management import prepare_sample_for_annotation
 from typing import Tuple, Union
 
 
 @magic_factory(
-    path_to_csv={'widget_type': 'FileEdit'}, 
+    path_to_csv={'widget_type': 'FileEdit', 'mode': 'r'},
     output_dir={'widget_type': 'FileEdit', 'mode' : 'd'}, 
     tzyx_cols={'widget_type' : 'LiteralEvalLineEdit'},
     scale={'widget_type' : 'LiteralEvalLineEdit'},
 )
 def sample_from_csv(
-    napari_viewer : napari.Viewer, 
-    path_to_csv: str, 
-    output_dir: str, 
+    napari_viewer : napari.Viewer,
+    path_to_csv: Path,
+    output_dir: Path,
     output_name: str,
     category_col: str = 'sample_type', 
     n_samples = 30,
@@ -35,8 +35,8 @@ def sample_from_csv(
     ):
     """
     Sample track segments from CSV. This sampling works by randomly selecting
-    a vertex (object coordinate) from a trajectory, then selecting the vertexes
-    up to +/- floor(1/2 frames) frames wayy from the selected track vertex. If 
+    a vertex (object coordinate) from a trajectory, then selecting the vertices
+    up to +/- floor(1/2 frames) frames away from the selected track vertex. If
     the track does not extend this far, only the available track will be taken. 
     The 
 
@@ -114,6 +114,8 @@ def _sample_from_csv(
         annotate_now: bool = True
     ):
 
+    path_to_csv = Path(path_to_csv)
+    output_dir = Path(output_dir)
     t_col = tzyx_cols[0]
     scale = (1, ) + scale
     instructions = pd.read_csv(path_to_csv)
@@ -153,7 +155,7 @@ def _sample_from_csv(
             row = instructions.loc[idx, :].copy()
             row['sample_path'] = sample_dir
             instructions = pd.concat([instructions, row]).reset_index()
-    instructions.to_csv(path_to_csv)  
+    instructions.to_csv(Path(sample_dir) / 'instructions.csv')
     
     # View
     # ----
@@ -164,7 +166,7 @@ def _sample_from_csv(
 
 
 @magic_factory(
-    path_to_csv={'widget_type': 'FileEdit'}, 
+    path_to_csv={'widget_type': 'FileEdit', 'mode': 'r'},
     output_dir={'widget_type': 'FileEdit', 'mode' : 'd'}, 
     scale={'widget_type' : 'LiteralEvalLineEdit'},
 )

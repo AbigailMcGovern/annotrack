@@ -493,9 +493,6 @@ def sample_tracks(tracks_path: str,
         df = pd.read_parquet(tracks_path)
     else:
         raise ValueError('please ensure the tracks file is a csv or parquet')
-    #print(tracks_path)
-    #print(image_path)
-    #print(labels_path)
     # calculate weights if required
     coords_cols = _coords_cols(array_order, non_tzyx_col, time_col)
     # well this was lazy (see below)
@@ -923,40 +920,33 @@ def _add_construction_info(sample, id_col, time_col, array_order, non_tzyx_col):
     return sample
 
 
-def open_with_correct_modality(image_path, channel=None, chan_axis=0):
+def _guess_channel_axis(shp):
+    initial_guess = np.argmin(shp)
+    return initial_guess if shp[initial_guess] < 6 else None
+
+
+def open_with_correct_modality(image_path, channel=None, chan_axis=None):
     suffix = Path(image_path).suffix
-    if suffix == '.nd2':
-        layerlist = nd2_reader(image_path)
-        if channel is None:
-            image = [l[0] for l in layerlist]
-            image = da.stack(image)
-        else:
-            image = layerlist[channel][0]
-    elif suffix == '.zarr':
+    if suffix == '.zarr':
         image = zarr.open(image_path, 'r')
-        if isinstance(image, zarr.hierarchy.Group):
-            print('group')
-            print(list(image.keys()))
-            print(image_path)
-            raise ValueError('Read in as zarr group... need array like?!')
-        if channel is not None:
-            s_ = [slice(None, None), ] * image.ndim
-            s_[chan_axis] = slice(channel, channel + 1)
-            s_ = tuple(s_)
-            image = image[s_]
+        if isinstance(image, zarr.hierarchy.Group):  # assume ome-zarr
+            image = image['/0']
+            if not isinstance(image, zarr.core.Array):
+                raise ValueError(
+                        'Not a zarr array or ome zarr array: {image_path}'
+                        )
+
+        if chan_axis is None:
+            chan_axis = _guess_channel_axis(image.shape)
+        if channel is not None and chan_axis is not None:
+            # extract only the desired channel
             image = da.array(image)
-        print(image)
-    elif suffix == '.h5' or suffix == '.hdf5':
-        if channel is not None:
-            print('channel == None')
-            image = read_from_h5(image_path, channel=channel)
-        elif channel == 2:
-            print('channel == 2')
-            image = read_from_h5(image_path, channel='channel2')
-        else:
-            print('channel == ', channel)
-            image = read_from_h5(image_path, channel='channel2')
-    image = np.squeeze(image)
+            ix = [slice(None, None), ] * image.ndim
+            ix[chan_axis] = channel
+            image = image[tuple(ix)]
+    else:
+        # only support zarr
+        raise ValueError('only zarr images are supported')
     return image
 
 
@@ -1007,9 +997,6 @@ def get_sample_hypervolumes(sample, img_channel=None):
         labels = None
     array_order = sample['coord_info']['array_order']
     pairs = [key for key in sample.keys() if isinstance(key, tuple)]
-    #if labels is not None:
-        #print(labels.shape)
-        #labels = np.array(labels)
     for pair in pairs:
         l = len(array_order)
         m = f'Image must be of same dimensions ({l}) as in the sample array_order: {array_order}'
@@ -1018,15 +1005,9 @@ def get_sample_hypervolumes(sample, img_channel=None):
         for key in array_order:
             s_ = sample[pair]['b_box'][key]
             slice_.append(s_)
-        #print(slice_)
-        #print(image)
-        img = image[tuple(slice_)]
-        if isinstance(img, da.core.Array):
-            img = img.compute()
+        img = np.asarray(image[tuple(slice_)])
         if labels is not None:
-            lab = labels[tuple(slice_)]
-            if isinstance(lab, da.core.Array):
-                lab = img.compute()
+            lab = np.asarray(labels[tuple(slice_)])
         else:
             lab = None
         sample[pair]['image'] = img
