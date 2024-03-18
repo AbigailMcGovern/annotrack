@@ -164,7 +164,7 @@ def _sample_from_csv(
 
 
 @magic_factory(
-    path_to_csv={'widget_type': 'FileEdit'}, 
+    path_to_csv={'widget_type': 'FileEdit', 'mode': 'r'},
     output_dir={'widget_type': 'FileEdit', 'mode' : 'd'}, 
     scale={'widget_type' : 'LiteralEvalLineEdit'},
 )
