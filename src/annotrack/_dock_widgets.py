@@ -35,8 +35,8 @@ def sample_from_csv(
     ):
     """
     Sample track segments from CSV. This sampling works by randomly selecting
-    a vertex (object coordinate) from a trajectory, then selecting the vertexes
-    up to +/- floor(1/2 frames) frames wayy from the selected track vertex. If 
+    a vertex (object coordinate) from a trajectory, then selecting the vertices
+    up to +/- floor(1/2 frames) frames away from the selected track vertex. If
     the track does not extend this far, only the available track will be taken. 
     The 
 
