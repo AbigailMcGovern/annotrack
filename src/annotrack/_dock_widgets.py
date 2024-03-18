@@ -17,9 +17,9 @@ from typing import Tuple, Union
     scale={'widget_type' : 'LiteralEvalLineEdit'},
 )
 def sample_from_csv(
-    napari_viewer : napari.Viewer, 
-    path_to_csv: str, 
-    output_dir: str, 
+    napari_viewer : napari.Viewer,
+    path_to_csv: Path,
+    output_dir: Path,
     output_name: str,
     category_col: str = 'sample_type', 
     n_samples = 30,
