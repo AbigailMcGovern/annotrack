@@ -11,7 +11,7 @@ from typing import Tuple, Union
 
 
 @magic_factory(
-    path_to_csv={'widget_type': 'FileEdit'}, 
+    path_to_csv={'widget_type': 'FileEdit', 'mode': 'r'},
     output_dir={'widget_type': 'FileEdit', 'mode' : 'd'}, 
     tzyx_cols={'widget_type' : 'LiteralEvalLineEdit'},
     scale={'widget_type' : 'LiteralEvalLineEdit'},
