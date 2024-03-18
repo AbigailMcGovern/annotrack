@@ -920,40 +920,33 @@ def _add_construction_info(sample, id_col, time_col, array_order, non_tzyx_col):
     return sample
 
 
-def open_with_correct_modality(image_path, channel=None, chan_axis=0):
+def _guess_channel_axis(shp):
+    initial_guess = np.argmin(shp)
+    return initial_guess if shp[initial_guess] < 6 else None
+
+
+def open_with_correct_modality(image_path, channel=None, chan_axis=None):
+    if chan_axis is None:
+        chan_axis = _guess_channel_axis(image.shape)
     suffix = Path(image_path).suffix
-    if suffix == '.nd2':
-        layerlist = nd2_reader(image_path)
-        if channel is None:
-            image = [l[0] for l in layerlist]
-            image = da.stack(image)
-        else:
-            image = layerlist[channel][0]
-    elif suffix == '.zarr':
+    if suffix == '.zarr':
         image = zarr.open(image_path, 'r')
-        if isinstance(image, zarr.hierarchy.Group):
-            print('group')
-            print(list(image.keys()))
-            print(image_path)
-            raise ValueError('Read in as zarr group... need array like?!')
-        if channel is not None:
-            s_ = [slice(None, None), ] * image.ndim
-            s_[chan_axis] = slice(channel, channel + 1)
-            s_ = tuple(s_)
-            image = image[s_]
+        if isinstance(image, zarr.hierarchy.Group):  # assume ome-zarr
+            image = zarr['/0']
+            if not isinstance(image, zarr.core.Array):
+                raise ValueError(
+                        'Not a zarr array or ome zarr array: {image_path}'
+                        )
+
+        if channel is not None and chan_axis is not None:
+            # extract only the desired channel
             image = da.array(image)
-        print(image)
-    elif suffix == '.h5' or suffix == '.hdf5':
-        if channel is not None:
-            print('channel == None')
-            image = read_from_h5(image_path, channel=channel)
-        elif channel == 2:
-            print('channel == 2')
-            image = read_from_h5(image_path, channel='channel2')
-        else:
-            print('channel == ', channel)
-            image = read_from_h5(image_path, channel='channel2')
-    image = np.squeeze(image)
+            ix = [slice(None, None), ] * image.ndim
+            ix[chan_axis] = channel
+            image = image[tuple(ix)]
+    else:
+        # only support zarr
+        raise ValueError('only zarr images are supported')
     return image
 
 
