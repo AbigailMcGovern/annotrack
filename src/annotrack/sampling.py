@@ -997,9 +997,6 @@ def get_sample_hypervolumes(sample, img_channel=None):
         labels = None
     array_order = sample['coord_info']['array_order']
     pairs = [key for key in sample.keys() if isinstance(key, tuple)]
-    #if labels is not None:
-        #print(labels.shape)
-        #labels = np.array(labels)
     for pair in pairs:
         l = len(array_order)
         m = f'Image must be of same dimensions ({l}) as in the sample array_order: {array_order}'
@@ -1008,15 +1005,9 @@ def get_sample_hypervolumes(sample, img_channel=None):
         for key in array_order:
             s_ = sample[pair]['b_box'][key]
             slice_.append(s_)
-        #print(slice_)
-        #print(image)
-        img = image[tuple(slice_)]
-        if isinstance(img, da.core.Array):
-            img = img.compute()
+        img = np.asarray(image[tuple(slice_)])
         if labels is not None:
-            lab = labels[tuple(slice_)]
-            if isinstance(lab, da.core.Array):
-                lab = img.compute()
+            lab = np.asarray(tuple(slice_))
         else:
             lab = None
         sample[pair]['image'] = img
