@@ -493,9 +493,6 @@ def sample_tracks(tracks_path: str,
         df = pd.read_parquet(tracks_path)
     else:
         raise ValueError('please ensure the tracks file is a csv or parquet')
-    #print(tracks_path)
-    #print(image_path)
-    #print(labels_path)
     # calculate weights if required
     coords_cols = _coords_cols(array_order, non_tzyx_col, time_col)
     # well this was lazy (see below)
