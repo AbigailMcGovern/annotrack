@@ -3,7 +3,11 @@ import pandas as pd
 import numpy as np
 from .sampling import sample_tracks, sample_track_terminations, sample_objects, get_sample_hypervolumes, save_sample
 from pathlib import Path
-from nd2_dask.nd2_reader import nd2_reader
+try:
+    import nd2
+    nd2_available = True
+except ModuleNotFoundError:
+    nd2_available = False
 import zarr
 import re
 
@@ -92,9 +96,16 @@ def get_sample_from_metadata(
             print(image_path)
             if not debug_without_tracks:
                 if shape is None and not use_h5:
-                    layer_list = nd2_reader(image_path)
-                    shape = layer_list[channel][0].shape
-                    del layer_list
+                    # nd2
+                    if not nd2_available:
+                        raise RuntimeError(
+                                'nd2 is not installed. Install with '
+                                '`pip install nd2` or '
+                                '`pip install "annotrack[io]"`'
+                                )
+                    with nd2.ND2File(image_path, dask=True) as nd2file:
+                        shape = tuple(v for k, v in nd2file.sizes
+                                      if k in 'TZYX')
                 elif use_h5:
                     from sampling import read_from_h5
                     print('reading the h5: ', image_path)

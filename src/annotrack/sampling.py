@@ -12,7 +12,6 @@ import time
 from toolz import curry
 from typing import Iterable, Union
 import zarr
-from nd2_dask.nd2_reader import nd2_reader
 import dask.array as da
 from datetime import datetime
 
