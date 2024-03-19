@@ -1,6 +1,13 @@
-name: Test
+name: Test and Deploy
 
-# Controls when the workflow will run
+# This workflow:
+# - runs tests on pull requests
+# - runs tests on pushing to main
+# - if it's a tag push and the tag starts with v, and if the tests pass,
+#   deploys to PyPI using Trusted Publishers:
+#   https://docs.pypi.org/trusted-publishers/
+
+# on: controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
@@ -23,33 +30,22 @@ jobs:
         python: ["3.9", "3.11"]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python }}
-
-      - name: Setup Miniconda
-        if: runner.os == 'macOS' && matrix.python == '3.9'
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          miniconda-version: "latest"
-          channels: conda-forge
-          channel-priority: strict
           python-version: ${{ matrix.python }}
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          pip install setuptools
-          pip install .
-          python -c "import annotrack"
-      
-      - name: Pytest
-        run: |
-          pytest 
+          python -m pip install --upgrade pip
+          python -m pip install setuptools
+          python -m pip install .
+
+      - name: Test with pytest
+        run: pytest
       
       - name: Coverage
-        if: runner.os == 'Linux' && matrix.python == '3.9'
+        if: runner.os == 'Linux' && matrix.python == '3.11'
         uses: codecov/codecov-action@v1
