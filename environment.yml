@@ -98,7 +98,7 @@ dependencies:
   - pillow==10.2.0
   - Pint==0.23
   - plateletanalysis==0.0.4
-  - platetrack==0.0.6
+  - platetrack==0.0.7
   - platformdirs==4.2.0
   - pooch==1.8.1
   - prompt-toolkit==3.0.43
